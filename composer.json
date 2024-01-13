@@ -1,0 +1,61 @@
+{
+    "name": "jrrdnx/craft-ip-restrictor",
+    "description": "Restrict what IP addresses can access the Craft control panel and front-end",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+      "cms",
+      "craftcms",
+      "ip",
+      "restrict"
+    ],
+    "license": "MIT",
+    "authors": [
+      {
+        "name": "Jarrod D Nix",
+        "homepage": "https://jarrodnix.dev/"
+      }
+    ],
+    "support": {
+      "issues": "https://github.com/jrrdnx/craft-ip-restrictor/issues",
+      "docs": "https://github.com/jrrdnx/craft-ip-restrictor/blob/main/README.md"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+      "php": "^8.0.2",
+      "craftcms/cms": "^4.0.0",
+      "dxw/cidr": "^3.0.0"
+    },
+    "require-dev": {
+      "craftcms/ecs": "dev-main",
+      "craftcms/phpstan": "dev-main",
+      "craftcms/rector": "dev-main"
+    },
+    "autoload": {
+      "psr-4": {
+        "jrrdnx\\iprestrictor\\": "src/"
+      }
+    },
+    "scripts": {
+      "check-cs": "ecs check --ansi",
+      "fix-cs": "ecs check --ansi --fix",
+      "phpstan": "phpstan --memory-limit=1G"
+    },
+    "extra": {
+      "name": "IP Restrictor",
+      "handle": "ip-restrictor",
+      "hasCpSettings": true,
+      "class": "jrrdnx\\iprestrictor\\IpRestrictor",
+      "documentationUrl": "https://github.com/jrrdnx/craft-ip-restrictor/blob/main/README.md"
+    },
+    "config": {
+      "platform": {
+        "php": "8.0.2"
+      },
+      "allow-plugins": {
+        "yiisoft/yii2-composer": true,
+        "craftcms/plugin-installer": true
+      }
+    }
+  }

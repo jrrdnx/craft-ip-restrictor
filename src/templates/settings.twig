@@ -1,0 +1,176 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Restrict what IP addresses can access the Craft control panel and front-end
+ *
+ * IP Restrictor Settings.twig
+ *
+ * @author    Jarrod D Nix
+ * @copyright Copyright (c) 2024 Jarrod D Nix
+ * @link      https://github.com/jrrdnx/craft-ip-restrictor
+ * @package   IpRestrictor
+ * @since     1.0.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{{ forms.lightswitchField({
+	label: 'enabledControlPanel'|t('ip-restrictor'),
+	id: 'enabledControlPanel',
+	name: 'enabledControlPanel',
+	on: settings.enabledControlPanel,
+    toggle: 'toggleControlPanel',
+	warning: (craft.app.config.getConfigFromFile('ip-restrictor')['enabledControlPanel'] is defined ? 'overridden'|t('ip-restrictor', params = { name : 'enabledControlPanel' }) : '')
+}) }}
+
+<div id="toggleControlPanel"{% if settings.enabledControlPanel is not defined or not settings.enabledControlPanel %} class="hidden"{% endif %}>
+    {{ forms.editableTableField({
+        label: 'ipWhitelistControlPanel'|t('ip-restrictor'),
+        id: 'ipWhitelistControlPanel',
+        name: 'ipWhitelistControlPanel',
+        cols: [
+            {
+                type: 'text',
+                heading: 'ipCidrAddress'|t('ip-restrictor'),
+                placeholder: 'e.g. 192.168.1.1/24',
+                width: '25%'
+            },
+            {
+                type: 'text',
+                heading: 'note'|t('ip-restrictor'),
+                width: '75%'
+            }
+        ],
+        rows: settings.ipWhitelistControlPanel,
+        errors: settings.getErrors('ipWhitelistControlPanel'),
+        addRowLabel: 'addAnIpCidrAddress'|t('ip-restrictor'),
+        allowAdd: true,
+        allowDelete: true,
+        allowReorder: true,
+        warning: (craft.app.config.getConfigFromFile('ip-restrictor')['ipWhitelistControlPanel'] is defined ? 'overridden'|t('ip-restrictor', params = { name : 'ipWhitelistControlPanel' }) : '')
+    }) }}
+
+    {{ forms.selectizeField({
+        label: 'restrictionMethodControlPanel'|t('ip-restrictor'),
+        id: 'restrictionMethodControlPanel',
+        name: 'restrictionMethodControlPanel',
+        options: restrictionMethods,
+        includeEnvVars: true,
+        value: settings.restrictionMethodControlPanel,
+        errors: settings.getErrors('restrictionMethodControlPanel'),
+        toggle: 'restrictionMethodControlPanel',
+        targetPrefix: 'toggleControlPanelRestrictionMethod',
+        warning: (craft.app.config.getConfigFromFile('ip-restrictor')['restrictionMethodControlPanel'] is defined ? 'overridden'|t('ip-restrictor', params = { name : 'restrictionMethodControlPanel' }) : '')
+    }) }}
+
+    <div id="toggleControlPanelRestrictionMethodredirect"{% if settings.restrictionMethodControlPanel != 'redirect' %} class="hidden"{% endif %}>
+        {{ forms.autosuggestField({
+            label: 'redirect'|t('ip-restrictor'),
+            id: 'redirectControlPanel',
+            name: 'redirectControlPanel',
+            suggestEnvVars: true,
+            suggestAliases: true,
+            value: settings.redirectControlPanel,
+            errors: settings.getErrors('redirectControlPanel')|unique,
+            warning: (craft.app.config.getConfigFromFile('ip-restrictor')['redirectControlPanel'] is defined ? 'overridden'|t('ip-restrictor', params = { name : 'redirectControlPanel' }) : '')
+        }) }}
+    </div>
+
+    <div id="toggleControlPanelRestrictionMethodtemplate"{% if settings.restrictionMethodControlPanel != 'template' %} class="hidden"{% endif %}>
+        {{ forms.autosuggestField({
+            label: 'template'|t('ip-restrictor'),
+            id: 'templateControlPanel',
+            name: 'templateControlPanel',
+            suggestEnvVars: true,
+            suggestAliases: true,
+            suggestions: craft.cp.getTemplateSuggestions(),
+            value: settings.templateControlPanel,
+            errors: settings.getErrors('templateControlPanel')|unique,
+            warning: (craft.app.config.getConfigFromFile('ip-restrictor')['templateControlPanel'] is defined ? 'overridden'|t('ip-restrictor', params = { name : 'templateControlPanel' }) : '')
+        }) }}
+    </div>
+</div>
+
+<hr />
+
+{{ forms.lightswitchField({
+    label: 'enabledFrontEnd'|t('ip-restrictor'),
+    id: 'enabledFrontEnd',
+    name: 'enabledFrontEnd',
+    on: settings.enabledFrontEnd,
+    toggle: 'toggleFrontEnd',
+	warning: (craft.app.config.getConfigFromFile('ip-restrictor')['enabledFrontEnd'] is defined ? 'overridden'|t('ip-restrictor', params = { name : 'enabledFrontEnd' }) : '')
+}) }}
+
+<div id="toggleFrontEnd"{% if settings.enabledFrontEnd is not defined or not settings.enabledFrontEnd %} class="hidden"{% endif %}>
+    {{ forms.editableTableField({
+        label: 'ipWhitelistFrontEnd'|t('ip-restrictor'),
+        id: 'ipWhitelistFrontEnd',
+        name: 'ipWhitelistFrontEnd',
+        cols: [
+            {
+                type: 'text',
+                heading: 'ipCidrAddress'|t('ip-restrictor'),
+                placeholder: 'e.g. 192.168.1.1/24',
+                width: '25%'
+            },
+            {
+                type: 'text',
+                heading: 'note'|t('ip-restrictor'),
+                width: '75%'
+            }
+        ],
+        rows: settings.ipWhitelistFrontEnd,
+        errors: settings.getErrors('ipWhitelistFrontEnd'),
+        addRowLabel: 'addAnIpCidrAddress'|t('ip-restrictor'),
+        allowAdd: true,
+        allowDelete: true,
+        allowReorder: true,
+        warning: (craft.app.config.getConfigFromFile('ip-restrictor')['ipWhitelistFrontEnd'] is defined ? 'overridden'|t('ip-restrictor', params = { name : 'ipWhitelistFrontEnd' }) : '')
+    }) }}
+
+    {{ forms.selectizeField({
+        label: 'restrictionMethodFrontEnd'|t('ip-restrictor'),
+        id: 'restrictionMethodFrontEnd',
+        name: 'restrictionMethodFrontEnd',
+        options: restrictionMethods,
+        includeEnvVars: true,
+        value: settings.restrictionMethodFrontEnd,
+        errors: settings.getErrors('restrictionMethodFrontEnd'),
+        toggle: 'restrictionMethodFrontEnd',
+        targetPrefix: 'toggleFrontEndRestrictionMethod',
+        warning: (craft.app.config.getConfigFromFile('ip-restrictor')['restrictionMethodFrontEnd'] is defined ? 'overridden'|t('ip-restrictor', params = { name : 'restrictionMethodFrontEnd' }) : '')
+    }) }}
+
+    <div id="toggleFrontEndRestrictionMethodredirect"{% if settings.restrictionMethodFrontEnd != 'redirect' %} class="hidden"{% endif %}>
+        {{ forms.autosuggestField({
+            label: 'redirect'|t('ip-restrictor'),
+            id: 'redirectFrontEnd',
+            name: 'redirectFrontEnd',
+            suggestEnvVars: true,
+            suggestAliases: true,
+            value: settings.redirectFrontEnd,
+            errors: settings.getErrors('redirectFrontEnd')|unique,
+            warning: (craft.app.config.getConfigFromFile('ip-restrictor')['redirectFrontEnd'] is defined ? 'overridden'|t('ip-restrictor', params = { name : 'redirectFrontEnd' }) : '')
+        }) }}
+    </div>
+
+    <div id="toggleFrontEndRestrictionMethodtemplate"{% if settings.restrictionMethodFrontEnd != 'template' %} class="hidden"{% endif %}>
+        {{ forms.autosuggestField({
+            label: 'template'|t('ip-restrictor'),
+            id: 'templateFrontEnd',
+            name: 'templateFrontEnd',
+            suggestEnvVars: true,
+            suggestAliases: true,
+            suggestions: craft.cp.getTemplateSuggestions(),
+            value: settings.templateFrontEnd,
+            errors: settings.getErrors('templateFrontEnd')|unique,
+            warning: (craft.app.config.getConfigFromFile('ip-restrictor')['templateFrontEnd'] is defined ? 'overridden'|t('ip-restrictor', params = { name : 'templateFrontEnd' }) : '')
+        }) }}
+    </div>
+</div>
+
+<br />
+<br />
+<br />
