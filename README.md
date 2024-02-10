@@ -6,7 +6,7 @@ Restrict what IP addresses can access the Craft control panel and front-end
 
 ## Requirements
 
-This plugin requires Craft CMS ^4.0.0 and PHP ^8.0.2
+This plugin requires Craft CMS ^4.0.0 or ^5.0.0 and PHP ^8.0.2
 
 ## Installation
 

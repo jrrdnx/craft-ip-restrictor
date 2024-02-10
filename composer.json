@@ -2,7 +2,7 @@
     "name": "jrrdnx/craft-ip-restrictor",
     "description": "Restrict what IP addresses can access the Craft control panel and front-end",
     "type": "craft-plugin",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "keywords": [
       "cms",
       "craftcms",
@@ -18,13 +18,13 @@
     ],
     "support": {
       "issues": "https://github.com/jrrdnx/craft-ip-restrictor/issues",
-      "docs": "https://github.com/jrrdnx/craft-ip-restrictor/blob/main/README.md"
+      "docs": "https://jarrodnix.dev/plugins/ip-restrictor/v1"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
       "php": "^8.0.2",
-      "craftcms/cms": "^4.0.0",
+      "craftcms/cms": "^4.0.0 || ^5.0.0",
       "dxw/cidr": "^3.0.0"
     },
     "require-dev": {
@@ -47,7 +47,7 @@
       "handle": "ip-restrictor",
       "hasCpSettings": true,
       "class": "jrrdnx\\iprestrictor\\IpRestrictor",
-      "documentationUrl": "https://github.com/jrrdnx/craft-ip-restrictor/blob/main/README.md"
+      "documentationUrl": "https://jarrodnix.dev/plugins/ip-restrictor/v1"
     },
     "config": {
       "platform": {
