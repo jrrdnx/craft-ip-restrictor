@@ -75,7 +75,7 @@ class IpRestrictor extends Plugin
             Plugins::EVENT_AFTER_INSTALL_PLUGIN,
             function (PluginEvent $event) {
                 if ($event->plugin === $this) {
-                    if(!Craft::$app->getRequest()->getIsCpRequest()) {
+                    if(!Craft::$app->getRequest()->getIsConsoleRequest()) {
                         Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('settings/plugins/ip-restrictor'))->send();
                     }
                 }

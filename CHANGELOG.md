@@ -1,5 +1,10 @@
 # Release Notes for IP Restrictor
 
+## 1.1.2 - 2024-02-13
+
+### Fixed
+- Replaced getIsCpRequest() with getIsConsoleRequest() [#1](https://github.com/jrrdnx/craft-ip-restrictor/issues/1)
+
 ## 1.1.1 - 2024-02-13
 
 ### Fixed
