@@ -1,6 +1,11 @@
 # Release Notes for IP Restrictor
 
-## 1.1.0 - 2024-02-0=10
+## 1.1.1 - 2024-02-13
+
+### Fixed
+- Don't redirect to plugin settings after install on console requests [#1](https://github.com/jrrdnx/craft-ip-restrictor/issues/1)
+
+## 1.1.0 - 2024-02-10
 
 ### Changed
 - Updated requirements for Craft CMS 5 compatibility
