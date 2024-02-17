@@ -30,7 +30,7 @@ return [
     // IP/CIDR whitelist for the control panel
     'ipWhitelistControlPanel' => [
         [ '::1', 'IPv6 localhost' ],
-        [ '127.0.0.1', 'IPv4 localhost' ]
+        [ '127.0.0.1', 'IPv4 localhost' ],
     ],
 
     // Restriction method for the control panel
@@ -52,7 +52,7 @@ return [
     // IP/CIDR whitelist for the front-end
     'ipWhitelistFrontEnd' => [
         [ '::1', 'IPv6 localhost' ],
-        [ '127.0.0.1', 'IPv4 localhost' ]
+        [ '127.0.0.1', 'IPv4 localhost' ],
     ],
 
     // Restriction method for the front-end
