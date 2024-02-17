@@ -14,13 +14,22 @@ To install the plugin, follow these instructions.
 
 1. Open your terminal and go to your Craft project:
 
-        cd /path/to/project
+```sh
+cd /path/to/project
+```
 
 2. Then tell Composer to load the plugin:
 
-        composer require jrrdnx/craft-ip-restrictor
+```sh
+composer require jrrdnx/craft-ip-restrictor
+```
 
-3. In the Control Panel, go to Settings -> Plugins and click the "Install" button for IP Restrictor.
+3. In the Control Panel, go to Settings -> Plugins and click the "Install" button for IP Restrictor. You can also use the CLU to install and enable:
+
+```sh
+php craft plugin/install ip-restrictor
+php craft plugin/enable ip-restrictor
+```
 
 ## Configuring IP Restrictor
 
@@ -28,7 +37,11 @@ To install the plugin, follow these instructions.
 
 OR
 
-- Copy the vendor/jrrdnx/ip-restrictor/src/config.php file to config/ip-restrictor.php and modify the default settings as necessary.
+- Copy the vendor/jrrdnx/craft-ip-restrictor/src/config.php file to config/ip-restrictor.php and modify the default settings as necessary.
+
+```
+cp vendor/jrrdnx/craft-ip-restrictor/src/config.php config/ip-restrictor.php
+```
 
 ## IP Restrictor Roadmap
 
