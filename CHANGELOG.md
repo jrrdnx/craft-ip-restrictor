@@ -1,5 +1,11 @@
 # Release Notes for IP Restrictor
 
+## 1.1.3 - 2024-02-17
+
+### Changed
+- Updated src/config.php
+- Updated README.md
+
 ## 1.1.2 - 2024-02-13
 
 ### Fixed
