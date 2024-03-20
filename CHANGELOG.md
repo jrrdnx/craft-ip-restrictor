@@ -1,5 +1,13 @@
 # Release Notes for IP Restrictor
 
+## 1.1.4 - 2024-03-20
+
+### Changed
+- Added remote IP address to log messages for better debugging
+
+### Fixed
+- Fixed log messages for front-end erroneously referring to control panel
+
 ## 1.1.3 - 2024-02-17
 
 ### Changed
