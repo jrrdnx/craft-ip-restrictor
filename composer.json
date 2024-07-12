@@ -2,7 +2,7 @@
     "name": "jrrdnx/craft-ip-restrictor",
     "description": "Restrict what IP addresses can access the Craft control panel and front-end",
     "type": "craft-plugin",
-    "version": "1.1.4",
+    "version": "1.2.0",
     "keywords": [
       "cms",
       "craftcms",

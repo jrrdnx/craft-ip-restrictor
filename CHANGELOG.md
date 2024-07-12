@@ -1,5 +1,11 @@
 # Release Notes for IP Restrictor
 
+## 1.2.0 - 2024-07-11
+
+### Changed
+- Use Monolog for proper log rotation
+- Cleanup unused classes
+
 ## 1.1.4 - 2024-03-20
 
 ### Changed
