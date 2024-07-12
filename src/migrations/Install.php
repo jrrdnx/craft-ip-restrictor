@@ -7,7 +7,6 @@
 
 namespace jrrdnx\iprestrictor\migrations;
 
-use Craft;
 use craft\db\Migration;
 
 /**
