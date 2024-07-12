@@ -44,11 +44,11 @@ class RestrictService extends Component
             if(IpRestrictor::$plugin->getSettings()->getRestrictionMethodControlPanel() == SettingsModel::METHOD_REDIRECT) {
                 $redirect = IpRestrictor::$plugin->getSettings()->getRedirectControlPanel();
                 if(!empty($redirect)) {
-                    IpRestrictor::$plugin->log($userIp .' does not match whitelist for control panel, redirecting to '.$redirect);
+                    IpRestrictor::info($userIp .' does not match whitelist for control panel, redirecting to '.$redirect);
                     Craft::$app->response->redirect($redirect);
                     Craft::$app->end();
                 } else {
-                    IpRestrictor::$plugin->log($userIp .' does not match whitelist for control panel but no redirect found, redirecting to front-end of primary site');
+                    IpRestrictor::info($userIp .' does not match whitelist for control panel but no redirect found, redirecting to front-end of primary site');
                     Craft::$app->response->redirect(Craft::$app->getSites()->getPrimarySite()->getBaseUrl());
                     Craft::$app->end();
                 }
@@ -59,18 +59,18 @@ class RestrictService extends Component
                 if(!empty($template)) {
                     try {
                         echo Craft::$app->view->renderTemplate($template);
-                        IpRestrictor::$plugin->log($userIp .' does not match whitelist for control panel, rendering template '.$template);
+                        IpRestrictor::info($userIp .' does not match whitelist for control panel, rendering template '.$template);
                     } catch (\Throwable $th) {
-                        IpRestrictor::$plugin->log($userIp .' does not match whitelist for control panel but error rendering template '.$template.', throwing exception');
+                        IpRestrictor::error($userIp .' does not match whitelist for control panel but error rendering template '.$template.', throwing exception');
                         throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
                     }
                     Craft::$app->end();
                 } else {
-                    IpRestrictor::$plugin->log($userIp .' does not match whitelist for control panel but no template found, throwing exception');
+                    IpRestrictor::error($userIp .' does not match whitelist for control panel but no template found, throwing exception');
                     throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
                 }
             } else {
-                IpRestrictor::$plugin->log($userIp .' does not match whitelist for control panel and no restriction method found, throwing exception');
+                IpRestrictor::error($userIp .' does not match whitelist for control panel and no restriction method found, throwing exception');
                 throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
             }
         }
@@ -94,11 +94,11 @@ class RestrictService extends Component
             if(IpRestrictor::$plugin->getSettings()->getRestrictionMethodFrontEnd() == SettingsModel::METHOD_REDIRECT) {
                 $redirect = IpRestrictor::$plugin->getSettings()->getRedirectFrontEnd();
                 if(!empty($redirect)) {
-                    IpRestrictor::$plugin->log($userIp .' does not match whitelist for front-end, redirecting to '.$redirect);
+                    IpRestrictor::info($userIp .' does not match whitelist for front-end, redirecting to '.$redirect);
                     Craft::$app->response->redirect($redirect);
                     Craft::$app->end();
                 } else {
-                    IpRestrictor::$plugin->log($userIp .' does not match whitelist for front-end but no redirect found, throwing exception');
+                    IpRestrictor::error($userIp .' does not match whitelist for front-end but no redirect found, throwing exception');
                     throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
                     Craft::$app->end();
                 }
@@ -109,18 +109,18 @@ class RestrictService extends Component
                 if(!empty($template)) {
                     try {
                         echo Craft::$app->view->renderTemplate($template);
-                        IpRestrictor::$plugin->log($userIp .' does not match whitelist for front-end, rendering template '.$template);
+                        IpRestrictor::info($userIp .' does not match whitelist for front-end, rendering template '.$template);
                     } catch (\Throwable $th) {
-                        IpRestrictor::$plugin->log($userIp .' does not match whitelist for front-end but error rendering template '.$template.', throwing exception');
+                        IpRestrictor::error($userIp .' does not match whitelist for front-end but error rendering template '.$template.', throwing exception');
                         throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
                     }
                     Craft::$app->end();
                 } else {
-                    IpRestrictor::$plugin->log($userIp .' does not match whitelist for front-end but no template found, throwing exception');
+                    IpRestrictor::error($userIp .' does not match whitelist for front-end but no template found, throwing exception');
                     throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
                 }
             } else {
-                IpRestrictor::$plugin->log($userIp .' does not match whitelist for front-end and no restriction method found, throwing exception');
+                IpRestrictor::error($userIp .' does not match whitelist for front-end and no restriction method found, throwing exception');
                 throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
             }
         }

@@ -15,10 +15,11 @@ use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\events\PluginEvent;
-use craft\helpers\FileHelper;
 use craft\helpers\UrlHelper;
+use craft\log\MonologTarget;
 use craft\services\Plugins;
-
+use Monolog\Formatter\LineFormatter;
+use Psr\Log\LogLevel;
 use yii\base\Event;
 
 /**
@@ -56,6 +57,8 @@ class IpRestrictor extends Plugin
 
 		parent::init();
         self::$plugin = $this;
+
+        $this->_registerLogTarget();
 
         $this->setComponents([
 			'restrict' => RestrictService::class,
@@ -126,18 +129,37 @@ class IpRestrictor extends Plugin
         );
     }
 
-	/**
-	 * Log plugin actions
-	 *
-	 * @return void
-	 */
-	public static function log($message): void
-	{
-        $today = new \DateTime();
+    /**
+     * Logs an informational message to our custom log target.
+     */
+    public static function info(string $message): void
+    {
+        Craft::info($message, 'ip-restrictor');
+    }
 
-		$file = Craft::getAlias('@storage/logs/ip-restrictor-' . $today->format('Y-m-d') . '.log');
-		$log = $today->format('Y-m-d H:i:s').' '.$message."\n";
+    /**
+     * Logs an error message to our custom log target.
+     */
+    public static function error(string $message): void
+    {
+        Craft::error($message, 'ip-restrictor');
+    }
 
-		FileHelper::writeToFile($file, $log, ['append' => true]);
-	}
+    /**
+     * Registers a custom log target, keeping the format as simple as possible.
+     */
+    private function _registerLogTarget(): void
+    {
+        Craft::getLogger()->dispatcher->targets[] = new MonologTarget([
+            'name' => 'ip-restrictor',
+            'categories' => ['ip-restrictor'],
+            'level' => LogLevel::INFO,
+            'logContext' => false,
+            'allowLineBreaks' => false,
+            'formatter' => new LineFormatter(
+                format: "[%datetime%] %message%\n",
+                dateFormat: 'Y-m-d H:i:s',
+            ),
+        ]);
+    }
 }
