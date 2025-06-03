@@ -1,5 +1,10 @@
 # Release Notes for IP Restrictor
 
+## 1.3.0 - 2025-06-03
+
+### Changed
+- Replaced `dxw/cidr` dependency with `s1lentium/iptools` to remove vulnerable dependency on `phpseclib/phpseclib` v2
+
 ## 1.2.0 - 2024-07-11
 
 ### Changed

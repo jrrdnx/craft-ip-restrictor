@@ -12,7 +12,7 @@ use Craft;
 use craft\base\Model;
 use craft\behaviors\EnvAttributeParserBehavior;
 use craft\helpers\App;
-use Dxw\CIDR\IPRange;
+use IPTools\Range;
 
 /**
  * IpRestrictor Settings Model
@@ -191,8 +191,9 @@ class SettingsModel extends Model
     public function validateIpCidr($attribute)
     {
         foreach($this->$attribute as &$row) {
-            $result = IPRange::Make($row[0]);
-            if ($result->isErr()) {
+            try {
+                Range::parse($row[0]);
+            } catch (\Exception $e) {
                 $row[0] = ['value' => $row[0], 'hasErrors' => true];
                 $this->addError($attribute, Craft::t('ip-restrictor', 'pleaseProvideValidIpCidr'));
             }
