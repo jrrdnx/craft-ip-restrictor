@@ -14,7 +14,7 @@ use jrrdnx\iprestrictor\models\SettingsModel;
 use Craft;
 use craft\base\Component;
 use craft\web\View;
-use IPTools\Range;
+use IPTools\IP;
 use yii\web\HttpException;
 
 /**
@@ -131,14 +131,26 @@ class RestrictService extends Component
      */
     public static function checkIp($whitelist, $userIp): bool
     {
+        try {
+            $userIpObj = IP::parse($userIp);
+        } catch (\Exception $e) {
+            IpRestrictor::error('Invalid user IP format: ' . $e->getMessage());
+            return false;
+        }
+
         foreach($whitelist as $ipCidr) {
+            $ip = $ipCidr[0];
+
             try {
-                $range = Range::parse($ipCidr[0]);
-                if ($range->contains($userIp)) {
+                $whitelistIp = IP::parse($ip);
+                $contains = (string)$userIpObj === (string)$whitelistIp;
+
+                if ($contains) {
                     return true;
                 }
             } catch (\Exception $e) {
-                // Invalid CIDR format, skip this entry
+                // Invalid IP format, skip this entry
+                IpRestrictor::error('Invalid IP format: ' . $e->getMessage());
                 continue;
             }
         }
