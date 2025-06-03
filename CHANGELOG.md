@@ -1,5 +1,10 @@
 # Release Notes for IP Restrictor
 
+## 1.3.1 - 2025-06-03
+
+### Fixed
+- Fixed IP format mismatch
+
 ## 1.3.0 - 2025-06-03
 
 ### Changed
