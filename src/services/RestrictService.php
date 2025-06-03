@@ -15,6 +15,7 @@ use Craft;
 use craft\base\Component;
 use craft\web\View;
 use IPTools\IP;
+use IPTools\Network;
 use yii\web\HttpException;
 
 /**
@@ -131,26 +132,35 @@ class RestrictService extends Component
      */
     public static function checkIp($whitelist, $userIp): bool
     {
-        try {
-            $userIpObj = IP::parse($userIp);
-        } catch (\Exception $e) {
-            IpRestrictor::error('Invalid user IP format: ' . $e->getMessage());
-            return false;
-        }
-
         foreach($whitelist as $ipCidr) {
-            $ip = $ipCidr[0];
+            $entry = $ipCidr[0];
+            $userIpObj = IP::parse($userIp);
 
             try {
-                $whitelistIp = IP::parse($ip);
-                $contains = (string)$userIpObj === (string)$whitelistIp;
+                if (strpos($entry, '/') === false) {
+                    // For single IPs, do an exact match
+                    $entryIp = IP::parse($entry);
+                    $matches = $entryIp->inAddr() === $userIpObj->inAddr();
 
-                if ($contains) {
-                    return true;
+                    if ($matches) {
+                        return true;
+                    }
+                } else {
+                    // For CIDR ranges, check if the IP is in range
+                    $network = Network::parse($entry);
+                    $firstIp = $network->getFirstIP();
+                    $lastIp = $network->getLastIP();
+
+                    // Compare the binary representation of the IPs
+                    $contains = strcmp($userIpObj->inAddr(), $firstIp->inAddr()) >= 0 && strcmp($userIpObj->inAddr(), $lastIp->inAddr()) <= 0;
+
+                    if ($contains) {
+                        return true;
+                    }
                 }
             } catch (\Exception $e) {
-                // Invalid IP format, skip this entry
-                IpRestrictor::error('Invalid IP format: ' . $e->getMessage());
+                // Invalid format, skip this entry
+                IpRestrictor::error($e->getMessage());
                 continue;
             }
         }
