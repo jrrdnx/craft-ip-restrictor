@@ -2,60 +2,59 @@
     "name": "jrrdnx/craft-ip-restrictor",
     "description": "Restrict what IP addresses can access the Craft control panel and front-end",
     "type": "craft-plugin",
-    "version": "1.3.2",
+    "version": "2.0.0-alpha.1",
     "keywords": [
-      "cms",
-      "craftcms",
-      "ip",
-      "restrict"
+        "cms",
+        "craftcms",
+        "ip",
+        "restrict"
     ],
     "license": "MIT",
     "authors": [
-      {
-        "name": "Jarrod D Nix",
-        "homepage": "https://jarrodnix.dev/"
-      }
+        {
+            "name": "Jarrod D Nix",
+            "homepage": "https://jarrodnix.dev/"
+        }
     ],
     "support": {
-      "issues": "https://github.com/jrrdnx/craft-ip-restrictor/issues",
-      "docs": "https://jarrodnix.dev/plugins/ip-restrictor/v1"
+        "issues": "https://github.com/jrrdnx/craft-ip-restrictor/issues",
+        "docs": "https://jarrodnix.dev/plugins/ip-restrictor/v2"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-      "php": "^8.0.2",
-      "craftcms/cms": "^4.0.0 || ^5.0.0",
-      "s1lentium/iptools": "^1.2.0"
+        "php": "^8.5",
+        "craftcms/cms": "^6.0.0",
+        "s1lentium/iptools": "^1.2.0"
     },
     "require-dev": {
-      "craftcms/ecs": "dev-main",
-      "craftcms/phpstan": "dev-main",
-      "craftcms/rector": "dev-main"
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main",
+        "craftcms/rector": "dev-main"
     },
     "autoload": {
-      "psr-4": {
-        "jrrdnx\\iprestrictor\\": "src/"
-      }
+        "psr-4": {
+            "jrrdnx\\iprestrictor\\": "src/"
+        }
     },
     "scripts": {
-      "check-cs": "ecs check --ansi",
-      "fix-cs": "ecs check --ansi --fix",
-      "phpstan": "phpstan --memory-limit=1G"
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --ansi --fix",
+        "phpstan": "phpstan --memory-limit=1G"
     },
     "extra": {
-      "name": "IP Restrictor",
-      "handle": "ip-restrictor",
-      "hasCpSettings": true,
-      "class": "jrrdnx\\iprestrictor\\IpRestrictor",
-      "documentationUrl": "https://jarrodnix.dev/plugins/ip-restrictor/v1"
+        "name": "IP Restrictor",
+        "handle": "ip-restrictor",
+        "hasCpSettings": true,
+        "class": "jrrdnx\\iprestrictor\\IpRestrictor",
+        "documentationUrl": "https://jarrodnix.dev/plugins/ip-restrictor/v2"
     },
     "config": {
-      "platform": {
-        "php": "8.0.2"
-      },
-      "allow-plugins": {
-        "yiisoft/yii2-composer": true,
-        "craftcms/plugin-installer": true
-      }
+        "platform": {
+            "php": "8.5"
+        },
+        "allow-plugins": {
+            "craftcms/plugin-installer": true
+        }
     }
-  }
+}

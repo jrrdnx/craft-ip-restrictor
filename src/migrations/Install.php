@@ -5,9 +5,7 @@
  * @license MIT
  */
 
-namespace jrrdnx\iprestrictor\migrations;
-
-use craft\db\Migration;
+use CraftCms\Cms\Database\Migration;
 
 /**
  * Installation Migration
@@ -15,24 +13,8 @@ use craft\db\Migration;
  * @author Jarrod D Nix
  * @since 1.0
  */
-class Install extends Migration
-{
-    // Public Methods
-    // =========================================================================
+return new class extends Migration {
+    public function up(): void {}
 
-    /**
-     * @inheritdoc
-     */
-    public function safeUp(): bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function safeDown(): bool
-    {
-        return true;
-    }
-}
+    public function down(): void {}
+};

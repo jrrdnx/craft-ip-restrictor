@@ -10,13 +10,11 @@ namespace jrrdnx\iprestrictor\services;
 
 use jrrdnx\iprestrictor\IpRestrictor;
 use jrrdnx\iprestrictor\models\SettingsModel;
-
-use Craft;
-use craft\base\Component;
-use craft\web\View;
+use CraftCms\Cms\Support\Facades\I18N;
+use CraftCms\Cms\Twig\TemplateRenderer;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use IPTools\IP;
 use IPTools\Network;
-use yii\web\HttpException;
 
 /**
  * Restrict Service
@@ -25,141 +23,139 @@ use yii\web\HttpException;
  * @package   IpRestrictor
  * @since     1.0.0
  */
-class RestrictService extends Component
+class RestrictService
 {
     /**
-     * Determine if control panel request should be restricted, redirect or render template
+     * Determine if control panel request should be restricted, then redirect or render template.
      */
     public function restrictControlPanel(): void
     {
-        $allowed = true;
-        $userIp = Craft::$app->getRequest()->getRemoteIP();
+        /** @var IpRestrictor $plugin */
+        $plugin = IpRestrictor::getInstance();
+        $settings = $plugin->getSettings();
 
-        if(IpRestrictor::$plugin->getSettings()->getEnabledControlPanel()) {
-            $allowed = false;
-
-            $allowed = self::checkIp(IpRestrictor::$plugin->getSettings()->ipWhitelistControlPanel, $userIp);
+        if (!$settings->getEnabledControlPanel()) {
+            return;
         }
 
-        if(!$allowed) {
-            if(IpRestrictor::$plugin->getSettings()->getRestrictionMethodControlPanel() == SettingsModel::METHOD_REDIRECT) {
-                $redirect = IpRestrictor::$plugin->getSettings()->getRedirectControlPanel();
-                if(!empty($redirect)) {
-                    IpRestrictor::info($userIp .' does not match whitelist for control panel, redirecting to '.$redirect);
-                    Craft::$app->response->redirect($redirect);
-                    Craft::$app->end();
-                } else {
-                    IpRestrictor::info($userIp .' does not match whitelist for control panel but no redirect found, redirecting to front-end of primary site');
-                    Craft::$app->response->redirect(Craft::$app->getSites()->getPrimarySite()->getBaseUrl());
-                    Craft::$app->end();
-                }
-            } else
-            if(IpRestrictor::$plugin->getSettings()->getRestrictionMethodControlPanel() == SettingsModel::METHOD_TEMPLATE) {
-                Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_SITE);
-                $template = IpRestrictor::$plugin->getSettings()->getTemplateControlPanel();
-                if(!empty($template)) {
-                    try {
-                        echo Craft::$app->view->renderTemplate($template);
-                        IpRestrictor::info($userIp .' does not match whitelist for control panel, rendering template '.$template);
-                    } catch (\Throwable $th) {
-                        IpRestrictor::error($userIp .' does not match whitelist for control panel but error rendering template '.$template.', throwing exception');
-                        throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
-                    }
-                    Craft::$app->end();
-                } else {
-                    IpRestrictor::error($userIp .' does not match whitelist for control panel but no template found, throwing exception');
-                    throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
-                }
+        $userIp = request()->ip();
+        if (self::checkIp($settings->ipWhitelistControlPanel, $userIp)) {
+            return;
+        }
+
+        if ($settings->getRestrictionMethodControlPanel() === SettingsModel::METHOD_REDIRECT) {
+            $redirect = $settings->getRedirectControlPanel();
+            if (!empty($redirect)) {
+                IpRestrictor::info($userIp . ' does not match whitelist for control panel, redirecting to ' . $redirect);
             } else {
-                IpRestrictor::error($userIp .' does not match whitelist for control panel and no restriction method found, throwing exception');
-                throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
+                $redirect = url('/');
+                IpRestrictor::info($userIp . ' does not match whitelist for control panel but no redirect found, redirecting to site root');
+            }
+            throw new HttpResponseException(redirect($redirect));
+        }
+
+        if ($settings->getRestrictionMethodControlPanel() === SettingsModel::METHOD_TEMPLATE) {
+            $template = $settings->getTemplateControlPanel();
+            if (!empty($template)) {
+                try {
+                    $html = app(TemplateRenderer::class)->renderTemplate($template);
+                    IpRestrictor::info($userIp . ' does not match whitelist for control panel, rendering template ' . $template);
+                    throw new HttpResponseException(response($html, 403));
+                } catch (HttpResponseException $e) {
+                    throw $e;
+                } catch (\Throwable $th) {
+                    IpRestrictor::error($userIp . ' does not match whitelist for control panel but error rendering template ' . $template . ', throwing 403');
+                }
             }
         }
+
+        IpRestrictor::error($userIp . ' does not match whitelist for control panel, throwing 403');
+        abort(403, I18N::translate('accessDenied', [], 'ip-restrictor'));
     }
 
     /**
-     * Determine if front-end request should be restricted, redirect or render template
+     * Determine if front-end request should be restricted, then redirect or render template.
      */
     public function restrictFrontEnd(): void
     {
-        $allowed = true;
-        $userIp = Craft::$app->getRequest()->getRemoteIP();
+        /** @var IpRestrictor $plugin */
+        $plugin = IpRestrictor::getInstance();
+        $settings = $plugin->getSettings();
 
-        if(IpRestrictor::$plugin->getSettings()->getEnabledFrontEnd()) {
-            $allowed = false;
-
-            $allowed = self::checkIp(IpRestrictor::$plugin->getSettings()->ipWhitelistFrontEnd, $userIp);
+        if (!$settings->getEnabledFrontEnd()) {
+            return;
         }
 
-        if(!$allowed) {
-            if(IpRestrictor::$plugin->getSettings()->getRestrictionMethodFrontEnd() == SettingsModel::METHOD_REDIRECT) {
-                $redirect = IpRestrictor::$plugin->getSettings()->getRedirectFrontEnd();
-                if(!empty($redirect)) {
-                    IpRestrictor::info($userIp .' does not match whitelist for front-end, redirecting to '.$redirect);
-                    Craft::$app->response->redirect($redirect);
-                    Craft::$app->end();
-                } else {
-                    IpRestrictor::error($userIp .' does not match whitelist for front-end but no redirect found, throwing exception');
-                    throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
-                    Craft::$app->end();
+        $userIp = request()->ip();
+        if (self::checkIp($settings->ipWhitelistFrontEnd, $userIp)) {
+            return;
+        }
+
+        if ($settings->getRestrictionMethodFrontEnd() === SettingsModel::METHOD_REDIRECT) {
+            $redirect = $settings->getRedirectFrontEnd();
+            if (!empty($redirect)) {
+                IpRestrictor::info($userIp . ' does not match whitelist for front-end, redirecting to ' . $redirect);
+                throw new HttpResponseException(redirect($redirect));
+            }
+            IpRestrictor::error($userIp . ' does not match whitelist for front-end but no redirect found, throwing 403');
+            abort(403, I18N::translate('accessDenied', [], 'ip-restrictor'));
+        }
+
+        if ($settings->getRestrictionMethodFrontEnd() === SettingsModel::METHOD_TEMPLATE) {
+            $template = $settings->getTemplateFrontEnd();
+            if (!empty($template)) {
+                try {
+                    $html = app(TemplateRenderer::class)->renderTemplate($template);
+                    IpRestrictor::info($userIp . ' does not match whitelist for front-end, rendering template ' . $template);
+                    throw new HttpResponseException(response($html, 403));
+                } catch (HttpResponseException $e) {
+                    throw $e;
+                } catch (\Throwable $th) {
+                    IpRestrictor::error($userIp . ' does not match whitelist for front-end but error rendering template ' . $template . ', throwing 403');
                 }
-            }else
-            if(IpRestrictor::$plugin->getSettings()->getRestrictionMethodFrontEnd() == SettingsModel::METHOD_TEMPLATE) {
-                Craft::$app->view->setTemplateMode(View::TEMPLATE_MODE_SITE);
-                $template = IpRestrictor::$plugin->getSettings()->getTemplateFrontEnd();
-                if(!empty($template)) {
-                    try {
-                        echo Craft::$app->view->renderTemplate($template);
-                        IpRestrictor::info($userIp .' does not match whitelist for front-end, rendering template '.$template);
-                    } catch (\Throwable $th) {
-                        IpRestrictor::error($userIp .' does not match whitelist for front-end but error rendering template '.$template.', throwing exception');
-                        throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
-                    }
-                    Craft::$app->end();
-                } else {
-                    IpRestrictor::error($userIp .' does not match whitelist for front-end but no template found, throwing exception');
-                    throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
-                }
-            } else {
-                IpRestrictor::error($userIp .' does not match whitelist for front-end and no restriction method found, throwing exception');
-                throw new HttpException(403, Craft::t('ip-restrictor', 'accessDenied'));
             }
         }
+
+        IpRestrictor::error($userIp . ' does not match whitelist for front-end, throwing 403');
+        abort(403, I18N::translate('accessDenied', [], 'ip-restrictor'));
     }
 
     /**
-     * @var bool
+     * Returns true if $userIp matches any entry in $whitelist.
      */
-    public static function checkIp($whitelist, $userIp): bool
+    public static function checkIp(array $whitelist, ?string $userIp): bool
     {
-        foreach($whitelist as $ipCidr) {
+        if ($userIp === null) {
+            return false;
+        }
+
+        foreach ($whitelist as $ipCidr) {
             $entry = $ipCidr[0];
-            $userIpObj = IP::parse($userIp);
+            // Handle entries that were flagged as errors during validation
+            if (is_array($entry)) {
+                $entry = $entry['value'] ?? '';
+            }
 
             try {
-                if (strpos($entry, '/') === false) {
-                    // For single IPs, do an exact match
-                    $entryIp = IP::parse($entry);
-                    $matches = $entryIp->inAddr() === $userIpObj->inAddr();
+                $userIpObj = IP::parse($userIp);
 
-                    if ($matches) {
+                if (!str_contains($entry, '/')) {
+                    $entryIp = IP::parse($entry);
+                    if ($entryIp->inAddr() === $userIpObj->inAddr()) {
                         return true;
                     }
                 } else {
-                    // For CIDR ranges, check if the IP is in range
                     $network = Network::parse($entry);
                     $firstIp = $network->getFirstIP();
                     $lastIp = $network->getLastIP();
-
-                    // Compare the binary representation of the IPs
-                    $contains = strcmp($userIpObj->inAddr(), $firstIp->inAddr()) >= 0 && strcmp($userIpObj->inAddr(), $lastIp->inAddr()) <= 0;
-
-                    if ($contains) {
+                    if (
+                        strcmp($userIpObj->inAddr(), $firstIp->inAddr()) >= 0 &&
+                        strcmp($userIpObj->inAddr(), $lastIp->inAddr()) <= 0
+                    ) {
                         return true;
                     }
                 }
             } catch (\Exception $e) {
-                // Invalid format, skip this entry
                 IpRestrictor::error($e->getMessage());
                 continue;
             }

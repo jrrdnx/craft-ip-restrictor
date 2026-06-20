@@ -8,158 +8,116 @@
 
 namespace jrrdnx\iprestrictor;
 
+use CraftCms\Cms\Plugin\Plugin;
+use CraftCms\Cms\Plugin\PluginSettings;
+use CraftCms\Cms\Support\Facades\I18N;
+use CraftCms\Cms\Twig\TemplateRenderer;
+use CraftCms\Cms\View\Events\CpTemplateRootsResolving;
 use jrrdnx\iprestrictor\models\SettingsModel;
 use jrrdnx\iprestrictor\services\RestrictService;
-
-use Craft;
-use craft\base\Model;
-use craft\base\Plugin;
-use craft\events\PluginEvent;
-use craft\helpers\UrlHelper;
-use craft\log\MonologTarget;
-use craft\services\Plugins;
-use Monolog\Formatter\LineFormatter;
-use Psr\Log\LogLevel;
-use yii\base\Event;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @author    Jarrod D Nix
  * @package   IpRestrictor
  * @since     1.0.0
- *
- * @property  Settings $settings
- * @method    Settings getSettings()
  */
 class IpRestrictor extends Plugin
 {
-    // Static Properties
-    // =========================================================================
+    public bool $hasCpSettings = true;
 
-    /**
-     * @var IpRestrictor
-     */
-    public static $plugin;
-
-    // Public Properties
-    // =========================================================================
-
-    /**
-     * @var string
-     */
-    public string $schemaVersion = '1.0.0';
-
-    public function init()
+    public function registerPlugin(): void
     {
-        if(Craft::$app->getRequest()->getIsConsoleRequest())
-		{
-			$this->controllerNamespace = 'jrrdnx\iprestrictor\console\controllers';
-		}
+        $this->app->singleton(RestrictService::class);
+    }
 
-		parent::init();
-        self::$plugin = $this;
-
-        $this->_registerLogTarget();
-
-        $this->setComponents([
-			'restrict' => RestrictService::class,
-		]);
-
-        if(Craft::$app->getRequest()->getIsCpRequest()) {
-            $this->restrict->restrictControlPanel();
-        }
-
-        if(Craft::$app->getRequest()->getIsSiteRequest()) {
-            $this->restrict->restrictFrontEnd();
-        }
-
-        // Redirect to plugin settings after we're installed
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
-                if ($event->plugin === $this) {
-                    if(!Craft::$app->getRequest()->getIsConsoleRequest()) {
-                        Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('settings/plugins/ip-restrictor'))->send();
-                    }
-                }
+    public function bootPlugin(): void
+    {
+        // HasViews::bootHasViews() uses self::getInstance() which resolves to Plugin::getInstance()
+        // (PHP's self in traits binds to the trait's host class, not the subclass). Since Plugin is
+        // abstract and not bound in the container, that call fails. Register our template root
+        // explicitly here instead.
+        // Note: $this->handle is uninitialized on the service provider instance (Plugin::create()
+        // sets it on a separate instance). Use pluginsService like Plugin::boot() does.
+        $handle = $this->pluginsService->getPluginHandleByClass(static::class);
+        $templateDir = $this->getResourcesPath() . '/templates';
+        Event::listen(function (CpTemplateRootsResolving $event) use ($handle, $templateDir) {
+            if (is_dir($templateDir)) {
+                $event->roots[$handle] = [$templateDir];
             }
-        );
+        });
 
-		Craft::info(
-            Craft::t(
-                'ip-restrictor',
-                '{name} plugin loaded',
-                ['name' => $this->name]
-            ),
-            __METHOD__
-        );
-	}
+        if (app()->runningInConsole()) {
+            return;
+        }
 
-    /**
-     * Create and return the model used to store the plugin's settings.
-     *
-     * @return \craft\base\Model|null
-     */
-    protected function createSettingsModel(): ?Model
+        $request = request();
+
+        if ($request->isCpRequest()) {
+            app(RestrictService::class)->restrictControlPanel();
+        } elseif ($request->isSiteRequest()) {
+            app(RestrictService::class)->restrictFrontEnd();
+        }
+
+        Log::info(I18N::translate('{name} plugin loaded', ['name' => $handle], 'ip-restrictor'));
+    }
+
+    public function getSettings(): ?PluginSettings
+    {
+        $settings = parent::getSettings();
+        if ($settings === null) {
+            return null;
+        }
+        foreach ($this->_readConfigFile() as $key => $value) {
+            if (property_exists($settings, $key)) {
+                $settings->$key = $value;
+            }
+        }
+        return $settings;
+    }
+
+    protected function createSettingsModel(): ?PluginSettings
     {
         return new SettingsModel();
     }
 
-    /**
-     * Return the rendered settings HTML
-     *
-     * @return string The rendered settings HTML
-     */
-    protected function settingsHtml(): string
+    protected function settingsHtml(): ?string
     {
         $restrictionMethods = [];
-        foreach($this->getSettings()->getRestrictionMethods() as $restrictionMethod) {
+        foreach ($this->getSettings()->getRestrictionMethods() as $method) {
             $restrictionMethods[] = [
-                'label' => Craft::t('ip-restrictor', $restrictionMethod),
-                'value' => $restrictionMethod
+                'label' => I18N::translate($method, [], 'ip-restrictor'),
+                'value' => $method,
             ];
         }
 
-        return Craft::$app->view->renderTemplate(
+        return app(TemplateRenderer::class)->renderTemplate(
             'ip-restrictor/settings',
             [
                 'restrictionMethods' => $restrictionMethods,
-                'settings' => $this->getSettings()
+                'settings' => $this->getSettings(),
+                'configFromFile' => $this->_readConfigFile(),
             ]
         );
     }
 
-    /**
-     * Logs an informational message to our custom log target.
-     */
     public static function info(string $message): void
     {
-        Craft::info($message, 'ip-restrictor');
+        Log::info($message);
     }
 
-    /**
-     * Logs an error message to our custom log target.
-     */
     public static function error(string $message): void
     {
-        Craft::error($message, 'ip-restrictor');
+        Log::error($message);
     }
 
     /**
-     * Registers a custom log target, keeping the format as simple as possible.
+     * Returns the parsed contents of config/ip-restrictor.php, or [] if missing.
      */
-    private function _registerLogTarget(): void
+    private function _readConfigFile(): array
     {
-        Craft::getLogger()->dispatcher->targets[] = new MonologTarget([
-            'name' => 'ip-restrictor',
-            'categories' => ['ip-restrictor'],
-            'level' => LogLevel::INFO,
-            'logContext' => false,
-            'allowLineBreaks' => false,
-            'formatter' => new LineFormatter(
-                format: "[%datetime%] %message%\n",
-                dateFormat: 'Y-m-d H:i:s',
-            ),
-        ]);
+        $configFile = config_path('ip-restrictor.php');
+        return file_exists($configFile) ? require $configFile : [];
     }
 }
