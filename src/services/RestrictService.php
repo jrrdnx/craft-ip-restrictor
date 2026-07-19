@@ -33,7 +33,7 @@ class RestrictService extends Component
     public function restrictControlPanel(): void
     {
         $allowed = true;
-        $userIp = Craft::$app->getRequest()->getRemoteIP();
+        $userIp = Craft::$app->getRequest()->getUserIP();
 
         if(IpRestrictor::$plugin->getSettings()->getEnabledControlPanel()) {
             $allowed = false;
@@ -83,7 +83,7 @@ class RestrictService extends Component
     public function restrictFrontEnd(): void
     {
         $allowed = true;
-        $userIp = Craft::$app->getRequest()->getRemoteIP();
+        $userIp = Craft::$app->getRequest()->getUserIP();
 
         if(IpRestrictor::$plugin->getSettings()->getEnabledFrontEnd()) {
             $allowed = false;
