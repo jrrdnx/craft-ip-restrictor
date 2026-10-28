@@ -12,7 +12,7 @@ use Craft;
 use craft\base\Model;
 use craft\behaviors\EnvAttributeParserBehavior;
 use craft\helpers\App;
-use IPTools\Range;
+use yii\validators\IpValidator;
 
 /**
  * IpRestrictor Settings Model
@@ -190,10 +190,10 @@ class SettingsModel extends Model
      */
     public function validateIpCidr($attribute)
     {
+        $validator = new IpValidator(['subnet' => null]);
+
         foreach($this->$attribute as &$row) {
-            try {
-                Range::parse($row[0]);
-            } catch (\Exception $e) {
+            if (!$validator->validate($row[0])) {
                 $row[0] = ['value' => $row[0], 'hasErrors' => true];
                 $this->addError($attribute, Craft::t('ip-restrictor', 'pleaseProvideValidIpCidr'));
             }

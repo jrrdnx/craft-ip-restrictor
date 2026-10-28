@@ -14,8 +14,8 @@ use jrrdnx\iprestrictor\models\SettingsModel;
 use Craft;
 use craft\base\Component;
 use craft\web\View;
-use IPTools\IP;
-use IPTools\Network;
+use yii\helpers\IpHelper;
+use yii\validators\IpValidator;
 use yii\web\HttpException;
 
 /**
@@ -132,36 +132,26 @@ class RestrictService extends Component
      */
     public static function checkIp($whitelist, $userIp): bool
     {
+        // IpHelper::inRange() performs no validation of its own, and the whitelist
+        // can come straight from config, so vet both sides first
+        if (!is_string($userIp) || !filter_var($userIp, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+
+        $validator = new IpValidator(['subnet' => null]);
+
         foreach($whitelist as $ipCidr) {
-            $entry = $ipCidr[0];
-            $userIpObj = IP::parse($userIp);
+            $entry = $ipCidr[0] ?? null;
 
-            try {
-                if (strpos($entry, '/') === false) {
-                    // For single IPs, do an exact match
-                    $entryIp = IP::parse($entry);
-                    $matches = $entryIp->inAddr() === $userIpObj->inAddr();
-
-                    if ($matches) {
-                        return true;
-                    }
-                } else {
-                    // For CIDR ranges, check if the IP is in range
-                    $network = Network::parse($entry);
-                    $firstIp = $network->getFirstIP();
-                    $lastIp = $network->getLastIP();
-
-                    // Compare the binary representation of the IPs
-                    $contains = strcmp($userIpObj->inAddr(), $firstIp->inAddr()) >= 0 && strcmp($userIpObj->inAddr(), $lastIp->inAddr()) <= 0;
-
-                    if ($contains) {
-                        return true;
-                    }
-                }
-            } catch (\Exception $e) {
+            if (!$validator->validate($entry)) {
                 // Invalid format, skip this entry
-                IpRestrictor::error($e->getMessage());
+                IpRestrictor::error('Invalid IP/CIDR whitelist entry: ' . (is_scalar($entry) ? $entry : gettype($entry)));
                 continue;
+            }
+
+            // Handles both single IPs (exact match) and CIDR ranges
+            if (IpHelper::inRange($userIp, $entry)) {
+                return true;
             }
         }
 

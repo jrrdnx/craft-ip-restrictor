@@ -1,5 +1,11 @@
 # Release Notes for IP Restrictor
 
+## 1.3.4 - 2026-10-28
+
+### Changed
+
+- Replaced `s1lentium/iptools` dependency with Yii's built-in `IpValidator` and `IpHelper`, removing the unmaintained package and its `ext-bcmath` requirement. NOTE: hyphenated ranges (e.g. `1.2.3.4-1.2.3.10`) and wildcards (e.g. `1.2.3.*`) are no longer accepted when saving settings. These formats were never matched when checking access, so existing entries should be converted to CIDR notation (e.g. `1.2.3.0/24`).
+
 ## 1.3.3 - 2026-07-19
 
 ### Fixed
